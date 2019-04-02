@@ -219,6 +219,43 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
     [self _updateDynamicBufferState];
 
     [self _updateGameState];
+    
+    MTLTextureDescriptor* mtlDesc1 = [MTLTextureDescriptor new];
+    mtlDesc1.textureType = MTLTextureType2DMultisample;
+    mtlDesc1.usage = MTLTextureUsageRenderTarget;
+    mtlDesc1.pixelFormat = MTLPixelFormatRGBA8Unorm;
+    mtlDesc1.width = 16;
+    mtlDesc1.height = 16;
+    mtlDesc1.depth = 1;
+    mtlDesc1.mipmapLevelCount = 1;
+    mtlDesc1.arrayLength = 1;
+    mtlDesc1.sampleCount = 4;
+    mtlDesc1.storageMode = MTLStorageModePrivate;
+    id<MTLTexture>color1 = [_device newTextureWithDescriptor:mtlDesc1];
+    
+    MTLTextureDescriptor* mtlDesc2 = [MTLTextureDescriptor new];
+    mtlDesc2.textureType = MTLTextureType2D;
+    mtlDesc2.usage = MTLTextureUsageRenderTarget;
+    mtlDesc2.pixelFormat = MTLPixelFormatRGBA8Unorm;
+    mtlDesc2.width = 32;
+    mtlDesc2.height = 32;
+    mtlDesc2.depth = 1;
+    mtlDesc2.mipmapLevelCount = 2;
+    mtlDesc2.arrayLength = 1;
+    mtlDesc2.sampleCount = 1;
+    id<MTLTexture>resolve1 = [_device newTextureWithDescriptor:mtlDesc2];
+    
+    MTLRenderPassDescriptor* renderPass1 = [MTLRenderPassDescriptor renderPassDescriptor];
+    renderPass1.colorAttachments[0].loadAction = MTLLoadActionClear;
+    renderPass1.colorAttachments[0].clearColor = MTLClearColorMake(1.0, 0.0, 0.0, 1.0);
+    renderPass1.colorAttachments[0].texture = color1;
+    renderPass1.colorAttachments[0].resolveTexture = resolve1;
+    renderPass1.colorAttachments[0].resolveSlice = 0;
+    renderPass1.colorAttachments[0].resolveLevel = 1;
+    renderPass1.colorAttachments[0].storeAction = MTLStoreActionMultisampleResolve;
+    // Crash happens here.
+    id <MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPass1];
+
 
     /// Delay getting the currentRenderPassDescriptor until we absolutely need it to avoid
     ///   holding onto the drawable and blocking the display pipeline any longer than necessary
@@ -228,7 +265,7 @@ static const size_t kAlignedUniformsSize = (sizeof(Uniforms) & ~0xFF) + 0x100;
 
         /// Final pass rendering code here
 
-        id <MTLRenderCommandEncoder> renderEncoder =
+        renderEncoder =
         [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
         renderEncoder.label = @"MyRenderEncoder";
 
