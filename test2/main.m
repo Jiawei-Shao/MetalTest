@@ -56,7 +56,7 @@ int main(int argc, const char * argv[]) {
     id<MTLRenderCommandEncoder> renderEncoder = [commandBuffer renderCommandEncoderWithDescriptor:renderPass];
     [renderEncoder endEncoding];
     
-    id<MTLBuffer> buffer = [device newBufferWithLength:256 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> buffer = [device newBufferWithLength:2048 options:MTLResourceStorageModeShared];
     id<MTLBlitCommandEncoder> blit = [commandBuffer blitCommandEncoder];
     MTLOrigin origin;
     origin.x = 0;
@@ -75,8 +75,8 @@ int main(int argc, const char * argv[]) {
                sourceSize:size
                  toBuffer:buffer
         destinationOffset:0
-   destinationBytesPerRow:256
- destinationBytesPerImage:256];
+   destinationBytesPerRow:2048
+ destinationBytesPerImage:2048];
     
     [blit endEncoding];
     [commandBuffer commit];
